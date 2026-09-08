@@ -22,6 +22,7 @@
 import argparse, re, sys, os
 
 KEEP_AS_IS = ('@keyframes', '@font-face', '@charset', '@import')
+BOOT_MARK = '/* ---- ЗАПУСК ---- '
 
 
 def matching_brace(css, j):
@@ -86,12 +87,42 @@ def build(src_path, scope, base):
     fonts = re.search(r'(<link rel="preconnect".*?rel="stylesheet">)', src, re.S)
     fonts = fonts.group(1) if fonts else ''
 
-    # 1) внешние скрипты — на абсолютные адреса (ДО правки src="assets/,
-    #    иначе следующая замена испортит уже переписанные адреса)
-    body = re.sub(r'<script src="assets/([^"]+)"></script>',
-                  lambda m: '<script src="%sassets/%s"></script>' % (base, m.group(1)), body)
+    # 1) внешние скрипты. Просто переписать их на абсолютные адреса нельзя:
+    #    Тильда вставляет код блока так, что теги <script src> не выполняются
+    #    (проверено на живой странице — data.js и site.js висели в DOM, но
+    #    ни FILMS, ни renderSection не появлялись). Поэтому теги вырезаем,
+    #    а файлы блок подгружает сам и запускает рендер в колбэке.
+    srcs = re.findall(r'<script src="assets/([^"]+)"></script>', body)
+    body = re.sub(r'<script src="assets/[^"]+"></script>\s*', '', body)
+
     # 2) картинки в разметке
     body = body.replace('src="assets/', 'src="' + base + 'assets/')
+
+    # 3) хвост инлайнового скрипта (после маркера ЗАПУСК) уезжает в колбэк
+    i = body.find(BOOT_MARK)
+    if i == -1:
+        sys.exit('Не нашёл маркер «%s» в %s' % (BOOT_MARK, src_path))
+    j = body.find('</script>', i)
+    boot = body[body.find('*/', i) + 2:j].strip()
+    chain = 'start();'
+    for name in reversed(srcs):
+        chain = 'load("%sassets/%s", function(){ %s });' % (base, name, chain)
+    loader = (
+        '\n\n/* Тильда не выполняет <script src> внутри блока — грузим сами,\n'
+        '   строго по очереди: site.js рассчитывает на готовый data.js. */\n'
+        'function load(src, next) {\n'
+        '  var s = document.createElement("script");\n'
+        '  s.src = src;\n'
+        '  s.onload = next;\n'
+        '  s.onerror = function () { console.error("Döcke: не загрузился " + src); };\n'
+        '  document.head.appendChild(s);\n'
+        '}\n'
+        'function start() {\n'
+        '%s\n'
+        '}\n'
+        '%s\n'
+    ) % ('\n'.join('  ' + l for l in boot.splitlines()), chain)
+    body = body[:i] + loader + body[j:]
 
     note = ('<!-- Плёнки, мембраны и кровельная вентиляция Döcke — блок T123 для Тильды.\n'
             '     Собрано из index.html скриптом tilda/build-t123.py, руками не править:\n'
@@ -117,6 +148,11 @@ def check(out, scope, base):
             problems.append('селектор без области видимости: ' + s[:60])
     if 'src="assets/' in out:
         problems.append('остались относительные пути src="assets/')
+    if '<script src=' in out:
+        problems.append('остался тег <script src> — в блоке Тильды он не выполнится')
+    for need in ('function load(', 'function start(', 'renderSection'):
+        if need not in out:
+            problems.append('в блоке нет ' + need)
     if base not in out:
         problems.append('не подставился базовый адрес')
     return problems

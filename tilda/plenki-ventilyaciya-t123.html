@@ -967,8 +967,6 @@ body{margin: 0;
   </div>
 </footer>
 
-<script src="https://valerabkrv.github.io/docke-plenki-ventilyaciya/assets/data.js?v=1"></script>
-<script src="https://valerabkrv.github.io/docke-plenki-ventilyaciya/assets/site.js?v=1"></script>
 <script>
 /* ==================================================================
    Ц Е Н Ы   —   м е н я ю т с я   з д е с ь
@@ -1037,11 +1035,25 @@ var DK_PRICES = {
 };
 /* ================ конец блока цен ================================= */
 
-if (typeof applyPrices === 'function') {
-  applyPrices(DK_PRICES, DK_PRICE_UNIT, [FILMS, VENT]);
+
+
+/* Тильда не выполняет <script src> внутри блока — грузим сами,
+   строго по очереди: site.js рассчитывает на готовый data.js. */
+function load(src, next) {
+  var s = document.createElement("script");
+  s.src = src;
+  s.onload = next;
+  s.onerror = function () { console.error("Döcke: не загрузился " + src); };
+  document.head.appendChild(s);
 }
-renderSection('films', FILMS);
-renderSection('vent', VENT);
-initModelModal();
+function start() {
+  if (typeof applyPrices === 'function') {
+    applyPrices(DK_PRICES, DK_PRICE_UNIT, [FILMS, VENT]);
+  }
+  renderSection('films', FILMS);
+  renderSection('vent', VENT);
+  initModelModal();
+}
+load("https://valerabkrv.github.io/docke-plenki-ventilyaciya/assets/data.js?v=1", function(){ load("https://valerabkrv.github.io/docke-plenki-ventilyaciya/assets/site.js?v=1", function(){ start(); }); });
 </script>
 </div>
