@@ -151,7 +151,10 @@ function modalRoot() {
       '<button type="button" class="model-modal-close" data-close="1" aria-label="Закрыть">&times;</button>' +
       '<div class="model-modal-body"></div>' +
     '</div>';
-  document.body.appendChild(MODAL);
+  /* Внутрь блока, а не в body: в Тильде весь CSS ограничен областью
+     видимости .dk, и окно, висящее в body, осталось бы без стилей —
+     карточка вываливалась бы простыней в конец страницы. */
+  (document.querySelector('.dk') || document.body).appendChild(MODAL);
 
   MODAL.addEventListener('click', function (e) {
     var t = e.target;
