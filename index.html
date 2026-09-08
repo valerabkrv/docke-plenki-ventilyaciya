@@ -7,7 +7,7 @@
 <meta name="description" content="Официальный дилер Döcke в Челябинске и Магнитогорске. Супердиффузионные мембраны AT и AS, пароизоляция BD, BR и B, серия «Дача», коньковые и точечные аэраторы, проходные элементы, вентиляционные и канализационные выходы. Характеристики, цвета, адреса офисов.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800&subset=cyrillic&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=1">
+<link rel="stylesheet" href="assets/style.css?v=2">
 </head>
 <body>
 
@@ -205,7 +205,7 @@
 </footer>
 
 <script src="assets/data.js?v=1"></script>
-<script src="assets/site.js?v=1"></script>
+<script src="assets/site.js?v=2"></script>
 <script>
 /* ==================================================================
    Ц Е Н Ы   —   м е н я ю т с я   з д е с ь
@@ -274,6 +274,9 @@ var DK_PRICES = {
 };
 /* ================ конец блока цен ================================= */
 
+/* ---- ЗАПУСК ---- сборщик T123 оборачивает всё, что ниже, в загрузчик:
+   в блоке Тильды теги <script src> не выполняются, и скрипты приходится
+   подтягивать самим. Строки ниже правятся как обычно. */
 if (typeof applyPrices === 'function') {
   applyPrices(DK_PRICES, DK_PRICE_UNIT, [FILMS, VENT]);
 }
