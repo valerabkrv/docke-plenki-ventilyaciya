@@ -20,7 +20,7 @@ function esc(s) {
 
 function priceHtml(m) {
   if (!m.price) return '<span class="price price-ask">Цена по запросу</span>';
-  return '<span class="price">от ' + esc(m.price) + ' <small>' + esc(m.unit || '') + '</small></span>';
+  return '<span class="price">' + esc(m.price) + ' <small>' + esc(m.unit || '') + '</small></span>';
 }
 
 /* Цены из блока T123 (DK_PRICES) перекрывают то, что лежит в data.js.
@@ -124,7 +124,7 @@ function modelDetailHtml(key) {
         '<div class="collection-title-row">' +
           '<h3 class="section-title collection-title" style="font-size:22px">' + esc(m.name) + '</h3>' +
           (m.price
-            ? '<div class="collection-price">Цена от <span>' + esc(m.price) + '</span> ' + esc(m.unit || '') + '</div>'
+            ? '<div class="collection-price">Цена <span>' + esc(m.price) + '</span> ' + esc(m.unit || '') + '</div>'
             : '') +
         '</div>' +
         '<p class="section-sub">' + esc(m.desc) + '</p>' +
